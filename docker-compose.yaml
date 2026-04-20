@@ -1,0 +1,10 @@
+version: '3'
+services:
+  bot1:
+    build: ./bot-1
+    ports:
+      - "5000:5000"
+  bot2:
+    build: ./bot-01
+    ports:
+      - "5001:5001"
