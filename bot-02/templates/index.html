@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dr. Denta — AI Dental Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --mint: #d4f5e9;
+      --mint-mid: #a8e6cf;
+      --mint-dark: #3db87a;
+      --teal: #1a6b56;
+      --teal-deep: #0d3d31;
+      --ivory: #faf8f3;
+      --warm-gray: #e8e4da;
+      --text-dark: #1c2b24;
+      --text-mid: #4a6358;
+      --text-light: #8aab98;
+      --accent: #f0c060;
+      --accent-warm: #e8955a;
+      --white: #ffffff;
+      --shadow: rgba(13, 61, 49, 0.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--ivory);
+      color: var(--text-dark);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ─── Sidebar ─── */
+    .sidebar {
+      width: 280px;
+      background: var(--teal-deep);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      left: -60px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: rgba(61, 184, 122, 0.08);
+      pointer-events: none;
+    }
+
+    .sidebar-header {
+      padding: 36px 28px 28px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--mint-dark);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .logo-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-tagline {
+      font-size: 11px;
+      color: var(--text-light);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding-left: 48px;
+    }
+
+    .sidebar-section {
+      padding: 24px 20px 8px;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-light);
+      margin-bottom: 10px;
+      padding-left: 8px;
+    }
+
+    .quick-topic {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: rgba(255,255,255,0.65);
+      font-size: 13.5px;
+      font-weight: 400;
+      margin-bottom: 2px;
+    }
+
+    .quick-topic:hover {
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.9);
+    }
+
+    .quick-topic-icon {
+      font-size: 16px;
+      width: 22px;
+      text-align: center;
+    }
+
+    .sidebar-disclaimer {
+      margin-top: auto;
+      padding: 20px 20px 28px;
+      font-size: 11px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.28);
+    }
+
+    /* ─── Main Chat Area ─── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 20px 32px;
+      background: var(--white);
+      border-bottom: 1px solid var(--warm-gray);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .topbar-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--teal-deep);
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      background: #ebfaf4;
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--teal);
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--mint-dark);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
+    }
+
+    /* ─── Messages ─── */
+    .messages-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+      scroll-behavior: smooth;
+    }
+
+    .messages-wrap::-webkit-scrollbar { width: 5px; }
+    .messages-wrap::-webkit-scrollbar-track { background: transparent; }
+    .messages-wrap::-webkit-scrollbar-thumb { background: var(--warm-gray); border-radius: 4px; }
+
+    .welcome-card {
+      background: linear-gradient(135deg, var(--teal-deep) 0%, var(--teal) 100%);
+      border-radius: 20px;
+      padding: 36px;
+      color: white;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-card::after {
+      content: '🦷';
+      position: absolute;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 64px;
+      opacity: 0.15;
+    }
+
+    .welcome-card h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .welcome-card p {
+      font-size: 14px;
+      opacity: 0.75;
+      line-height: 1.6;
+      max-width: 380px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .chip {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.88);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+    }
+
+    .chip:hover {
+      background: rgba(255,255,255,0.22);
+      transform: translateY(-1px);
+    }
+
+    .message-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 20px;
+      animation: msgIn 0.3s ease;
+    }
+
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-row.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .avatar.bot { background: var(--teal); }
+    .avatar.user-av { background: var(--accent); }
+
+    .bubble {
+      max-width: 65%;
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .bubble.bot {
+      background: var(--white);
+      border: 1px solid var(--warm-gray);
+      color: var(--text-dark);
+      border-top-left-radius: 4px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .bubble.user {
+      background: var(--teal);
+      color: white;
+      border-top-right-radius: 4px;
+    }
+
+    .bubble strong { font-weight: 600; }
+    .bubble ul { padding-left: 18px; margin: 6px 0; }
+    .bubble li { margin-bottom: 4px; }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 14px 18px;
+      background: var(--white);
+      border: 1px solid var(--warm-gray);
+      border-radius: 16px;
+      border-top-left-radius: 4px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--text-light);
+      border-radius: 50%;
+      animation: typingBounce 1.2s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* ─── Input Area ─── */
+    .input-area {
+      padding: 20px 32px 24px;
+      background: var(--white);
+      border-top: 1px solid var(--warm-gray);
+      flex-shrink: 0;
+    }
+
+    .input-box {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      background: var(--ivory);
+      border: 1.5px solid var(--warm-gray);
+      border-radius: 16px;
+      padding: 10px 10px 10px 18px;
+      transition: border-color 0.2s;
+    }
+
+    .input-box:focus-within {
+      border-color: var(--mint-dark);
+    }
+
+    textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14.5px;
+      color: var(--text-dark);
+      resize: none;
+      max-height: 130px;
+      min-height: 24px;
+      line-height: 1.5;
+      padding: 4px 0;
+    }
+
+    textarea::placeholder { color: var(--text-light); }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--teal);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover { background: var(--teal-deep); transform: scale(1.05); }
+    .send-btn:disabled { background: var(--warm-gray); cursor: default; transform: none; }
+
+    .send-btn svg { width: 18px; height: 18px; fill: white; }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 8px;
+      padding-left: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">🦷</div>
+      <div class="logo-name">Dr. Denta</div>
+    </div>
+    <div class="logo-tagline">AI Dental Assistant</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Quick Topics</div>
+    <div class="quick-topic" onclick="sendQuick('How do I properly brush and floss?')">
+      <span class="quick-topic-icon">🪥</span> Brushing & Flossing
+    </div>
+    <div class="quick-topic" onclick="sendQuick('What are signs of a cavity?')">
+      <span class="quick-topic-icon">🔍</span> Cavities & Decay
+    </div>
+    <div class="quick-topic" onclick="sendQuick('How does teeth whitening work?')">
+      <span class="quick-topic-icon">✨</span> Teeth Whitening
+    </div>
+    <div class="quick-topic" onclick="sendQuick('What should I know about braces vs Invisalign?')">
+      <span class="quick-topic-icon">😁</span> Braces & Aligners
+    </div>
+    <div class="quick-topic" onclick="sendQuick('What are dental implants and who needs them?')">
+      <span class="quick-topic-icon">🔩</span> Dental Implants
+    </div>
+    <div class="quick-topic" onclick="sendQuick('I have a toothache — what should I do?')">
+      <span class="quick-topic-icon">🚨</span> Toothache Relief
+    </div>
+    <div class="quick-topic" onclick="sendQuick('What foods are bad for my teeth?')">
+      <span class="quick-topic-icon">🍎</span> Diet & Oral Health
+    </div>
+    <div class="quick-topic" onclick="sendQuick('Tips for kids dental health')">
+      <span class="quick-topic-icon">👶</span> Children's Dental Health
+    </div>
+  </div>
+
+  <div class="sidebar-disclaimer">
+    ⚕️ For informational purposes only. Always consult a licensed dentist for diagnosis and treatment.
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title">Dental Health Consultation</div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      Dr. Denta is available
+    </div>
+  </div>
+
+  <div class="messages-wrap" id="messages">
+    <div class="welcome-card">
+      <h2>Hello! I'm Dr. Denta 👋</h2>
+      <p>Your AI dental assistant. Ask me anything about oral health, dental procedures, hygiene tips, or symptoms you're experiencing.</p>
+      <div class="chips">
+        <div class="chip" onclick="sendQuick('What causes bad breath?')">🌬️ Bad breath</div>
+        <div class="chip" onclick="sendQuick('How often should I visit the dentist?')">📅 Checkup frequency</div>
+        <div class="chip" onclick="sendQuick('My gums bleed when I brush. Is that normal?')">🩸 Bleeding gums</div>
+        <div class="chip" onclick="sendQuick('What is a root canal procedure?')">🦷 Root canal</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-box">
+      <textarea id="userInput" placeholder="Ask Dr. Denta anything about dental health…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="input-hint">Press Enter to send · Shift+Enter for new line</div>
+  </div>
+</main>
+
+<script>
+  let chatHistory = [];
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 130) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function sendQuick(text) {
+    document.getElementById('userInput').value = text;
+    sendMessage();
+  }
+
+  function renderMarkdown(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function appendMessage(role, text) {
+    const wrap = document.getElementById('messages');
+    const row = document.createElement('div');
+    row.className = `message-row ${role === 'user' ? 'user' : ''}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `avatar ${role === 'user' ? 'user-av' : 'bot'}`;
+    avatar.textContent = role === 'user' ? '🧑' : '🦷';
+
+    const bubble = document.createElement('div');
+    bubble.className = `bubble ${role === 'user' ? 'user' : 'bot'}`;
+    bubble.innerHTML = role === 'user' ? text.replace(/\n/g, '<br>') : renderMarkdown(text);
+
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+    wrap.appendChild(row);
+    wrap.scrollTop = wrap.scrollHeight;
+    return bubble;
+  }
+
+  function showTyping() {
+    const wrap = document.getElementById('messages');
+    const row = document.createElement('div');
+    row.className = 'message-row';
+    row.id = 'typing-row';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar bot';
+    avatar.textContent = '🦷';
+
+    const indicator = document.createElement('div');
+    indicator.className = 'typing-indicator';
+    indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+    row.appendChild(avatar);
+    row.appendChild(indicator);
+    wrap.appendChild(row);
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing-row');
+    if (t) t.remove();
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    document.getElementById('sendBtn').disabled = true;
+
+    appendMessage('user', text);
+    chatHistory.push({ role: 'user', content: text });
+
+    showTyping();
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: chatHistory })
+      });
+
+      const data = await res.json();
+      removeTyping();
+
+      if (data.reply) {
+        appendMessage('assistant', data.reply);
+        chatHistory.push({ role: 'assistant', content: data.reply });
+      } else {
+        appendMessage('assistant', '⚠️ Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      removeTyping();
+      appendMessage('assistant', '⚠️ Connection error. Please check your server and try again.');
+    }
+
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  }
+</script>
+</body>
+</html>

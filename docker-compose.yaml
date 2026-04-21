@@ -8,3 +8,11 @@ services:
     build: ./bot-01
     ports:
       - "5001:5001"
+  bot3:
+    build: ./bot-02
+    ports:
+      - "5002:5002"
+  bot4:
+    build: ./bot-03
+    ports:
+      - "5003:5003"
